@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "siteTitle": "Портфолио — Студент ИИТ",
+    "lang": "ru"
+  },
+  "profile": {
+    "name": "Иван Иванов",
+    "role": "Студент института информационных технологий",
+    "institute": "Институт информационных технологий",
+    "course": "4 курс, направление «Информатика и вычислительная техника»",
+    "tagline": "Разработка, анализ данных и инженерные расчёты",
+    "photo": "assets/img/avatar.svg",
+    "bio": "Здесь кратко опишите себя: интересы, сильные стороны, цели после выпуска. Текст редактируется только в файле data/portfolio.json — HTML трогать не нужно.",
+    "skills": [
+      "Python",
+      "JavaScript",
+      "SQL",
+      "Git",
+      "Веб-разработка",
+      "Анализ данных"
+    ]
+  },
+  "contacts": {
+    "email": "student@example.com",
+    "telegram": "https://t.me/username",
+    "github": "https://github.com/username",
+    "phone": "+7 (900) 000-00-00"
+  },
+  "categories": [
+    {
+      "id": "diploma",
+      "title": "Дипломная работа",
+      "icon": "🎓",
+      "description": "Выпускная квалификационная работа.",
+      "projects": [
+        {
+          "title": "Дипломный проект (пример)",
+          "semester": "8 семестр",
+          "description": "Замените на своё название и ссылку.",
+          "tags": ["Python", "ВКР"],
+          "link": {
+            "type": "pdf",
+            "url": "assets/pdfs/diplom.pdf"
+          }
+        }
+      ]
+    },
+    {
+      "id": "coursework",
+      "title": "Курсовые работы",
+      "icon": "📚",
+      "description": "Академические проекты по дисциплинам.",
+      "projects": [
+        {
+          "title": "Курсовая работа — 1 семестр",
+          "semester": "1 семестр",
+          "description": "PDF из репозитория открывается в просмотрщике на сайте.",
+          "tags": ["отчёт"],
+          "link": {
+            "type": "pdf",
+            "url": "assets/pdfs/kursovaya-1.pdf"
+          }
+        },
+        {
+          "title": "Курсовая — Google Диск (пример)",
+          "semester": "4 семестр",
+          "description": "Для файла на Google Диск укажите ссылку «Поделиться» → type: google-drive.",
+          "tags": ["Google Drive"],
+          "link": {
+            "type": "google-drive",
+            "url": "https://drive.google.com/file/d/1YE27H-HsJwpN_jc4JHMglwYQTP1LlRvV/view?usp=sharing"
+          }
+        }
+      ]
+    },
+    {
+      "id": "internship",
+      "title": "Практики",
+      "icon": "💼",
+      "description": "Отчёты о прохождении производственной и учебной практики.",
+      "projects": [
+        {
+          "title": "Практика — 6 семестр",
+          "semester": "6 семестр",
+          "description": "Папка на Google Диск откроется в новой вкладке.",
+          "tags": ["практика"],
+          "link": {
+            "type": "google-drive",
+            "url": "https://drive.google.com/drive/folders/12liBYPv6ZVSiyKxNwKP853vgnzx8k-bz?usp=drive_link"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lab",
+      "title": "Лабораторные работы",
+      "icon": "🔬",
+      "description": "Лабораторные по программированию, физике, сетям и др.",
+      "projects": [
+        {
+          "title": "Лабораторная — GitHub (пример)",
+          "semester": "3 семестр",
+          "description": "Внешняя ссылка: репозиторий, Gist, raw PDF на GitHub.",
+          "tags": ["C++", "GitHub"],
+          "link": {
+            "type": "external",
+            "url": "https://github.com/"
+          }
+        },
+        {
+          "title": "Лабораторная — Google Документ",
+          "semester": "5 семестр",
+          "description": "Документ откроется в режиме предпросмотра.",
+          "tags": ["отчёт"],
+          "link": {
+            "type": "google-doc",
+            "url": "https://docs.google.com/document/d/1example/edit?usp=sharing"
+          }
+        }
+      ]
+    }
+  ]
+}

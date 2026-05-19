@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Портфолио студента института информационных технологий" />
+  <title>Портфолио — Студент ИИТ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержанию</a>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="logo" href="#top" aria-label="На главную">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text" data-bind="siteTitle">Портфолио</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle-bar"></span>
+        <span class="sr-only">Меню</span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="#about">Обо мне</a>
+        <a href="#projects">Проекты</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <p class="eyebrow" data-bind="institute">Институт информационных технологий</p>
+          <h1 id="hero-title" class="hero-title">
+            <span data-bind="name">Студент</span>
+          </h1>
+          <p class="hero-role" data-bind="role">Специальность</p>
+          <p class="hero-tagline" data-bind="tagline">Слоган</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#projects">Смотреть проекты</a>
+            <a class="btn btn-ghost" href="#contacts">Связаться</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img class="hero-photo" data-bind-src="photo" src="assets/img/avatar.svg" alt="" width="320" height="320" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 id="about-title">Обо мне</h2>
+          <p class="section-lead" data-bind="course">Курс и направление</p>
+        </header>
+        <div class="about-grid">
+          <p class="about-bio" data-bind="bio">Биография загружается…</p>
+          <div class="skills-block">
+            <h3 class="skills-title">Навыки</h3>
+            <ul class="skills-list" id="skills-list" aria-label="Навыки"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="projects" aria-labelledby="projects-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 id="projects-title">Проекты</h2>
+          <p class="section-lead">Дипломные, курсовые, практики и лабораторные работы</p>
+        </header>
+
+        <div class="filter-bar" role="toolbar" aria-label="Фильтр по типу работ">
+          <button type="button" class="filter-btn is-active" data-filter="all">Все</button>
+          <button type="button" class="filter-btn" data-filter="diploma">Диплом</button>
+          <button type="button" class="filter-btn" data-filter="coursework">Курсовые</button>
+          <button type="button" class="filter-btn" data-filter="internship">Практики</button>
+          <button type="button" class="filter-btn" data-filter="lab">Лабораторные</button>
+        </div>
+
+        <div id="projects-root" class="projects-root"></div>
+      </div>
+    </section>
+
+    <section class="section" id="contacts" aria-labelledby="contacts-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 id="contacts-title">Контакты</h2>
+          <p class="section-lead">Свяжитесь для сотрудничества или вопросов по работам</p>
+        </header>
+        <ul class="contacts-list" id="contacts-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><span data-bind="name">Студент</span> · <span data-bind="year"></span></p>
+      <p class="footer-note">Портфолио на GitHub Pages · контент в <code>data/portfolio.json</code></p>
+    </div>
+  </footer>
+
+  <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
+    <div class="viewer-panel">
+      <header class="viewer-header">
+        <h2 id="viewer-title" class="viewer-title">Просмотр</h2>
+        <div class="viewer-actions">
+          <a class="btn btn-ghost btn-sm" id="viewer-open" href="#" target="_blank" rel="noopener noreferrer">Открыть в новой вкладке</a>
+          <a class="btn btn-ghost btn-sm" id="viewer-download" href="#" download hidden>Скачать PDF</a>
+          <button type="button" class="viewer-close" id="viewer-close" aria-label="Закрыть">×</button>
+        </div>
+      </header>
+      <div class="viewer-body" id="viewer-body">
+        <p class="viewer-loading">Загрузка…</p>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
