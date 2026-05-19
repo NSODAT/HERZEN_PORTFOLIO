@@ -12,7 +12,45 @@
 
 1. Откройте `data/portfolio.json`.
 2. Заполните `profile` (имя, биография, навыки) и `contacts`.
-3. Добавьте работу в категорию (`diploma`, `coursework`, `internship`, `lab`):
+3. Добавьте работу в категорию (`diploma`, `coursework`, `internship`) или лабораторные по предметам (см. ниже).
+
+### Лабораторные по предметам
+
+В категории `lab` используйте массив `subjects` — каждый предмет со своим списком лабораторных:
+
+```json
+{
+  "id": "lab",
+  "subjects": [
+    {
+      "title": "Информатика",
+      "semester": "1 семестр",
+      "labs": [
+        {
+          "title": "Лабораторная работа №1",
+          "url": "https://docs.google.com/document/d/ID/edit?usp=sharing"
+        },
+        {
+          "title": "Лабораторная работа №2",
+          "url": "https://docs.google.com/document/d/ID2/edit?usp=sharing"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Типы ссылок для лабораторных** (поле `url` или объект `link`):
+
+| Способ | Пример в JSON |
+|--------|----------------|
+| Google Документ | `"url": "https://docs.google.com/document/d/ID/edit?usp=sharing"` |
+| PDF в этом репозитории | `"link": { "type": "pdf", "url": "assets/pdfs/lr1.pdf" }` |
+| Файл на GitHub (PDF) | `"link": { "type": "github", "url": "https://github.com/NSODAT/HERZEN_PORTFOLIO/blob/main/assets/pdfs/lr1.pdf" }` |
+
+Тип определяется автоматически по ссылке, если не указан `link.type`. PDF с GitHub и из папки `assets/pdfs/` открываются в просмотрщике на сайте; прочие файлы на GitHub — в новой вкладке.
+
+4. Для курсовых/диплома — пример карточки:
 
 ```json
 {
@@ -36,8 +74,8 @@
 | `google-doc` | Ссылка на Google Документ | Превью в окне |
 | `external` | Любой URL (GitHub, raw PDF и т.д.) | Новая вкладка |
 
-4. PDF положите в `assets/pdfs/`.
-5. Фото: `assets/img/ваше-фото.jpg` → путь в `profile.photo`.
+5. PDF положите в `assets/pdfs/`.
+6. Фото: `assets/img/ваше-фото.jpg` → путь в `profile.photo`.
 
 ## Локальный просмотр
 

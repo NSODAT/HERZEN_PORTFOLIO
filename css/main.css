@@ -425,6 +425,94 @@ a:hover {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
+/* Lab subjects */
+.subjects-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.subject-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.subject-header {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(61, 214, 198, 0.04);
+}
+
+.subject-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.subject-meta {
+  margin: 0 0 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.subject-desc {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.subject-count {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.lab-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lab-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1.15rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.lab-item:last-child {
+  border-bottom: 0;
+}
+
+.lab-item--empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.lab-item--empty code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--accent);
+}
+
+.lab-item-title {
+  flex: 1;
+  min-width: 10rem;
+  font-size: 0.95rem;
+}
+
+.lab-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .project-card {
   display: flex;
   flex-direction: column;

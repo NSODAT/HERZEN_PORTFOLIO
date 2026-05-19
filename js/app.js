@@ -1,7 +1,8 @@
 const DATA_URL = "data/portfolio.json";
 
 const LINK_LABELS = {
-  pdf: "PDF",
+  pdf: "PDF в репозитории",
+  github: "Файл на GitHub",
   "google-drive": "Google Drive",
   "google-doc": "Google Документ",
   external: "Ссылка",
@@ -129,10 +130,6 @@ function renderProjects() {
   root.innerHTML = categories
     .map((cat) => {
       const hidden = activeFilter !== "all" && activeFilter !== cat.id;
-      const cards = (cat.projects ?? [])
-        .map((proj) => renderProjectCard(proj, cat.id))
-        .join("");
-
       return `
         <section class="category-block${hidden ? " is-hidden" : ""}" data-category="${escapeAttr(cat.id)}" id="cat-${escapeAttr(cat.id)}">
           <header class="category-header">
@@ -142,9 +139,7 @@ function renderProjects() {
               ${cat.description ? `<p class="category-desc">${escapeHtml(cat.description)}</p>` : ""}
             </div>
           </header>
-          <div class="project-grid">
-            ${cards || '<p class="empty-state">Пока нет работ в этой категории.</p>'}
-          </div>
+          ${renderCategoryBody(cat)}
         </section>`;
     })
     .join("");
@@ -154,10 +149,69 @@ function renderProjects() {
   });
 }
 
+function renderCategoryBody(cat) {
+  if (cat.subjects?.length) {
+    return `<div class="subjects-grid">${cat.subjects.map((s) => renderSubjectBlock(s)).join("")}</div>`;
+  }
+
+  const cards = (cat.projects ?? [])
+    .map((proj) => renderProjectCard(proj, cat.id))
+    .join("");
+
+  return `<div class="project-grid">${cards || '<p class="empty-state">Пока нет работ в этой категории.</p>'}</div>`;
+}
+
+function renderSubjectBlock(subject) {
+  const labs = subject.labs ?? [];
+
+  const labItems = labs.length
+    ? labs
+        .map((lab) => {
+          const { type, url, label } = resolveWorkLink(lab);
+
+          return `
+            <li class="lab-item">
+              <span class="lab-item-title">${escapeHtml(lab.title)}</span>
+              <div class="lab-item-actions">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm project-open"
+                  data-title="${escapeAttr(lab.title)}"
+                  data-type="${escapeAttr(type)}"
+                  data-url="${escapeAttr(url)}"
+                >Открыть</button>
+                <span class="link-type-badge">${escapeHtml(label)}</span>
+              </div>
+            </li>`;
+        })
+        .join("")
+    : '<li class="lab-item lab-item--empty"><span class="lab-item-title">Добавьте лабораторные в массив <code>labs</code></span></li>';
+
+  return `
+    <article class="subject-block">
+      <header class="subject-header">
+        <h4 class="subject-title">${escapeHtml(subject.title)}</h4>
+        ${subject.semester ? `<p class="subject-meta">${escapeHtml(subject.semester)}</p>` : ""}
+        ${subject.description ? `<p class="subject-desc">${escapeHtml(subject.description)}</p>` : ""}
+        <p class="subject-count">${labs.length} ${pluralLabs(labs.length)}</p>
+      </header>
+      <ul class="lab-list" aria-label="Лабораторные: ${escapeAttr(subject.title)}">
+        ${labItems}
+      </ul>
+    </article>`;
+}
+
+function pluralLabs(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return "лабораторных";
+  if (mod10 === 1) return "лабораторная";
+  if (mod10 >= 2 && mod10 <= 4) return "лабораторные";
+  return "лабораторных";
+}
+
 function renderProjectCard(project, categoryId) {
-  const link = project.link;
-  const type = link?.type ?? "external";
-  const label = LINK_LABELS[type] ?? type;
+  const { type, url, label } = resolveWorkLink(project);
 
   return `
     <article class="project-card" data-category="${escapeAttr(categoryId)}">
@@ -175,7 +229,7 @@ function renderProjectCard(project, categoryId) {
           class="btn btn-primary btn-sm project-open"
           data-title="${escapeAttr(project.title)}"
           data-type="${escapeAttr(type)}"
-          data-url="${escapeAttr(link?.url ?? "#")}"
+          data-url="${escapeAttr(url)}"
         >Открыть</button>
         <span class="link-type-badge">${escapeHtml(label)}</span>
       </div>
@@ -218,21 +272,26 @@ function setupViewer() {
 }
 
 function openProject(dataset) {
-  const { title, type, url } = dataset;
-  if (!url || url === "#") return;
+  const { title } = dataset;
+  const link = resolveWorkLink({
+    link: { type: dataset.type, url: dataset.url },
+  });
 
-  if (type === "external" || isDriveFolder(url)) {
-    window.open(url, "_blank", "noopener,noreferrer");
+  if (!link.url || link.url === "#") return;
+
+  if (link.openInNewTab) {
+    window.open(link.url, "_blank", "noopener,noreferrer");
     return;
   }
 
-  const embedUrl = resolveEmbedUrl(type, url);
+  const embedType = link.previewType;
+  const embedUrl = resolveEmbedUrl(embedType, link.previewUrl);
   viewerTitle.textContent = title ?? "Просмотр";
-  viewerOpen.href = url;
+  viewerOpen.href = link.url;
   viewerOpen.hidden = false;
 
-  if (type === "pdf") {
-    viewerDownload.href = url;
+  if (embedType === "pdf") {
+    viewerDownload.href = link.previewUrl;
     viewerDownload.hidden = false;
   } else {
     viewerDownload.hidden = true;
@@ -240,6 +299,48 @@ function openProject(dataset) {
 
   viewerBody.innerHTML = `<iframe src="${escapeAttr(embedUrl)}" title="${escapeAttr(title ?? "Документ")}" allow="fullscreen"></iframe>`;
   viewer.showModal();
+}
+
+/** @param {{ link?: { type?: string, url?: string }, type?: string, url?: string }} item */
+function resolveWorkLink(item) {
+  const linkObj = item.link ?? {};
+  const url = String(linkObj.url ?? item.url ?? "#").trim();
+  let type = linkObj.type ?? item.type;
+
+  if (!type && url !== "#") type = detectLinkType(url);
+  if (!type) type = "google-doc";
+
+  const rawUrl = type === "github" ? toGitHubRawUrl(url) : url;
+  const isPdf = type === "pdf" || (type === "github" && isPdfUrl(rawUrl));
+  const openInNewTab =
+    type === "external" || isDriveFolder(url) || (type === "github" && !isPdf);
+  const previewType = isPdf ? "pdf" : type;
+  const previewUrl = type === "github" && isPdf ? rawUrl : url;
+  const label = LINK_LABELS[type] ?? type;
+
+  return { type, url, label, previewType, previewUrl, openInNewTab, isPdf };
+}
+
+function detectLinkType(url) {
+  if (/docs\.google\.com\/document/i.test(url)) return "google-doc";
+  if (/drive\.google\.com/i.test(url)) return "google-drive";
+  if (/github\.com\/.*\/blob\//i.test(url) || /raw\.githubusercontent\.com/i.test(url)) {
+    return "github";
+  }
+  if (!/^https?:\/\//i.test(url)) return "pdf";
+  if (isPdfUrl(url)) return "pdf";
+  return "external";
+}
+
+function isPdfUrl(url) {
+  return /\.pdf(\?|#|$)/i.test(url);
+}
+
+function toGitHubRawUrl(url) {
+  if (/raw\.githubusercontent\.com/i.test(url)) return url;
+  const m = url.match(/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+?)(?:\?.*)?$/i);
+  if (m) return `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}`;
+  return url;
 }
 
 function closeViewer() {

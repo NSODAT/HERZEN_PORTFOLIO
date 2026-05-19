@@ -4,27 +4,31 @@
     "lang": "ru"
   },
   "profile": {
-    "name": "Ваше Имя Фамилия",
-    "role": "Студент группы ИВТ1.1",
-    "institute": "Институт информационных технологий · СПбГУ им. И. И. Герцена",
+    "name": "Шульга Евгений Евгеньевич",
+    "role": "Студент 4 курса группы ИВТ1.1",
+    "institute": "Институт информационных технологий · РГПУ им. А. И. Герцена",
     "course": "ИВТ1.1 — информатика и вычислительная техника",
     "tagline": "Разработка, анализ данных и инженерные расчёты",
-    "photo": "assets/img/avatar.svg",
-    "bio": "Здесь кратко опишите себя: интересы, сильные стороны, цели после выпуска. Текст редактируется только в файле data/portfolio.json — HTML трогать не нужно.",
+    "photo": "assets/img/avatar.jfif",
+    "bio": "Привет! Меня зовут Евгений и я студент 4 курса группы ИВТ1.1 в РГПУ им. А. И. Герцена. Работаю в крупной fintech компании в качестве automation quality assurance engineer.",
     "skills": [
       "Python",
-      "JavaScript",
+      "Java",
       "SQL",
       "Git",
-      "Веб-разработка",
-      "Анализ данных"
+      "Selenium",
+      "Appium",
+      "Postman",
+      "Jira",
+      "Jenkins",
+      "Docker",
+      "Kubernetes"
     ]
   },
   "contacts": {
-    "email": "student@example.com",
-    "telegram": "https://t.me/username",
+    "email": "eugeneshulga03@gmail.com",
     "github": "https://github.com/NSODAT",
-    "phone": "+7 (900) 000-00-00"
+    "phone": "+7 (928) 660-15-39"
   },
   "categories": [
     {
@@ -95,27 +99,45 @@
       "id": "lab",
       "title": "Лабораторные работы",
       "icon": "🔬",
-      "description": "Лабораторные по программированию, физике, сетям и др.",
-      "projects": [
+      "description": "Лабораторные по предметам и семес",
+      "subjects": [
         {
-          "title": "Лабораторная — GitHub (пример)",
-          "semester": "3 семестр",
-          "description": "Внешняя ссылка: репозиторий, Gist, raw PDF на GitHub.",
-          "tags": ["C++", "GitHub"],
-          "link": {
-            "type": "external",
-            "url": "https://github.com/"
-          }
+          "title": "Информатика",
+          "semester": "1 семестр",
+          "labs": [
+            {
+              "title": "Лабораторная работа №1",
+              "url": "https://docs.google.com/document/d/ВАШ_ID_ДОКУМЕНТА/edit?usp=sharing"
+            },
+            {
+              "title": "Лабораторная работа №2",
+              "url": "https://docs.google.com/document/d/ВАШ_ID_ДОКУМЕНТА/edit?usp=sharing"
+            },
+            {
+              "title": "Лабораторная работа №3 (PDF в репозитории)",
+              "link": {
+                "type": "pdf",
+                "url": "assets/pdfs/informatika-lr3.pdf"
+              }
+            },
+            {
+              "title": "Лабораторная работа №4 (файл на GitHub)",
+              "link": {
+                "type": "github",
+                "url": "https://github.com/NSODAT/HERZEN_PORTFOLIO/blob/main/assets/pdfs/informatika-lr4.pdf"
+              }
+            }
+          ]
         },
         {
-          "title": "Лабораторная — Google Документ",
-          "semester": "5 семестр",
-          "description": "Документ откроется в режиме предпросмотра.",
-          "tags": ["отчёт"],
-          "link": {
-            "type": "google-doc",
-            "url": "https://docs.google.com/document/d/1example/edit?usp=sharing"
-          }
+          "title": "Программирование",
+          "semester": "2 семестр",
+          "labs": [
+            {
+              "title": "Лабораторная работа №1",
+              "url": "https://docs.google.com/document/d/ВАШ_ID_ДОКУМЕНТА/edit?usp=sharing"
+            }
+          ]
         }
       ]
     }
