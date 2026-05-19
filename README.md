@@ -1,3 +1,9 @@
+# HERZEN_PORTFOLIO — портфолио работ студента ИВТ1.1
+
+Одностраничный сайт на GitHub Pages: [NSODAT/HERZEN_PORTFOLIO](https://github.com/NSODAT/HERZEN_PORTFOLIO)
+
+---
+
 # Портфолио студента ИИТ (GitHub Pages)
 
 Одностраничное портфолио: **Обо мне**, **Проекты**, **Контакты**. Весь текст и список работ — в одном файле [`data/portfolio.json`](data/portfolio.json).
