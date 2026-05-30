@@ -74,8 +74,17 @@
 | `google-doc` | Ссылка на Google Документ | Превью в окне |
 | `external` | Любой URL (GitHub, raw PDF и т.д.) | Новая вкладка |
 
-5. PDF положите в `assets/pdfs/`.
+5. PDF положите в `assets/pdfs/` **или** укажите файлы из [HERZEN_PORTFOLIO_CONTENT](https://github.com/NSODAT/HERZEN_PORTFOLIO_CONTENT) (`link.type`: `github`).
 6. Фото: `assets/img/ваше-фото.jpg` → путь в `profile.photo`.
+
+### Автогенерация из HERZEN_PORTFOLIO_CONTENT
+
+```powershell
+Invoke-WebRequest -Uri "https://api.github.com/repos/NSODAT/HERZEN_PORTFOLIO_CONTENT/git/trees/main?recursive=1" -OutFile content-tree.json
+python scripts/generate_portfolio.py
+```
+
+Скрипт заполняет `data/portfolio.json` (курсовые, практики, диплом, лабораторные по предметам). Профиль и контакты сохраняются.
 
 ## Локальный просмотр
 
