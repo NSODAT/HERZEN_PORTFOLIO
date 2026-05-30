@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Generate portfolio.json from HERZEN_PORTFOLIO_CONTENT tree."""
+"""Generate portfolio.json from HERZEN_PORTFOLIO_CONTENT (folder links per subject)."""
 
 import json
-import re
 import urllib.parse
 from collections import defaultdict
 from pathlib import Path
 
 REPO = "NSODAT/HERZEN_PORTFOLIO_CONTENT"
 BRANCH = "main"
-GITHUB_BLOB = f"https://github.com/{REPO}/blob/{BRANCH}/"
 GITHUB_TREE = f"https://github.com/{REPO}/tree/{BRANCH}/"
 
 COURSE_SEMESTER = {
@@ -25,23 +23,7 @@ CATEGORY_ORDER = [
     ("coursework", ["курсов", "курсовая", "курсовой"]),
 ]
 
-SKIP_SUBJECTS = {"README.md", "_root"}
-SKIP_FILE_NAMES = {
-    "readme.md", "readme", ".ds_store", "thumbs.db", "desktop.ini",
-    ".gitignore", "_config.yml",
-}
-SKIP_FILE_PATTERNS = [
-    re.compile(r"\.pyc$", re.I),
-    re.compile(r"__pycache__", re.I),
-    re.compile(r"^\.", re.I),
-]
-SKIP_EXTENSIONS = {
-    ".docx", ".doc", ".odt", ".xlsx", ".xls", ".pptx", ".ppt",
-    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".mp4", ".mov",
-    ".py", ".js", ".php", ".css", ".scss", ".yaml", ".yml",
-    ".json", ".md", ".txt", ".archimate", ".bpm", ".potx",
-}
-PREFERRED_VIEW = {".pdf"}
+SKIP_SUBJECTS = {"_root"}
 
 ROOT = Path(__file__).resolve().parents[1]
 TREE_PATH = ROOT / "content-tree.json"
@@ -49,23 +31,20 @@ OUT_PATH = ROOT / "data" / "portfolio.json"
 PROFILE_PATH = ROOT / "data" / "portfolio.json"
 
 
-def github_url(path: str) -> str:
+def folder_url(course: str, subject: str) -> str:
+    path = f"{course}/{subject}"
     encoded = "/".join(urllib.parse.quote(part, safe="") for part in path.split("/"))
-    return GITHUB_BLOB + encoded
+    return GITHUB_TREE + encoded
 
 
-def link_for_path(path: str) -> dict:
-    lower = path.lower()
-    if lower.endswith(".pdf"):
-        return {"type": "github", "url": github_url(path)}
-    return {"type": "external", "url": github_url(path)}
-
-
-DIPLOMA_FILE_KEYWORDS = ["вкр", "дипломная работа", "дипломн", "тезис", "выпускн"]
+def folder_link(course: str, subject: str) -> dict:
+    return {"type": "external", "url": folder_url(course, subject)}
 
 
 def categorize_subject(name: str) -> str:
     n = name.lower()
+    if "преддиплом" in n:
+        return "diploma"
     if "курсов" in n:
         return "coursework"
     if "дипломная работа" in n or ("вкр" in n and "практик" not in n):
@@ -78,241 +57,97 @@ def categorize_subject(name: str) -> str:
     return "lab"
 
 
-def is_diploma_file(filename: str) -> bool:
-    n = filename.lower()
-    return any(k in n for k in DIPLOMA_FILE_KEYWORDS)
+def subject_sort_key(course: str, subject: str) -> tuple:
+    course_idx = list(COURSE_SEMESTER).index(course) if course in COURSE_SEMESTER else 99
+    return (course_idx, subject.lower())
 
 
-def should_skip_file(filename: str) -> bool:
-    low = filename.lower()
-    if low in SKIP_FILE_NAMES:
-        return True
-    return any(p.search(filename) for p in SKIP_FILE_PATTERNS)
-
-
-def clean_title(filename: str, subject: str) -> str:
-    name = filename
-    for ext in (".pdf", ".docx", ".doc", ".pptx", ".xlsx", ".py", ".mp4", ".png"):
-        if name.lower().endswith(ext):
-            name = name[: -len(ext)]
-    prefixes = [
-        r"^шульга[_\s]*",
-        r"^шульга\.?\s*",
-        re.escape(subject.lower()),
-        r"^lr[\s._]*",
-        r"^лр[\s._]*",
-        r"^лабораторн\w*[\s._]*",
-    ]
-    low = name.lower()
-    for p in prefixes:
-        low = re.sub(p, "", low, flags=re.I)
-    name = low.strip(" _-.")
-    if not name:
-        name = filename
-    return name[:1].upper() + name[1:] if name else filename
-
-
-def lab_sort_key(name: str):
-    nums = re.findall(r"\d+(?:\.\d+)?", name)
-    return [float(n) for n in nums] if nums else [9999]
-
-
-def pick_viewable_file(paths: list[str]) -> str | None:
-    pdfs = [p for p in paths if p.lower().endswith(".pdf")]
-    if pdfs:
-        return sorted(pdfs, key=lab_sort_key)[0]
-    for p in sorted(paths):
-        ext = "." + p.rsplit(".", 1)[-1].lower() if "." in p else ""
-        if ext not in SKIP_EXTENSIONS:
-            return p
-    return None
-
-
-def group_lab_files(rel_paths: list[str], pdf_only: bool = False) -> list[tuple[str, list[str], str]]:
-    """Group files into logical lab entries."""
-    filtered = [p for p in rel_paths if not should_skip_file(p.split("/")[-1])]
-    top_level = [p for p in filtered if "/" not in p]
-    nested = [p for p in filtered if "/" in p]
-
-    groups: dict[str, list[str]] = defaultdict(list)
-
-    for p in top_level:
-        fname = p.split("/")[-1]
-        ext = "." + fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
-        if pdf_only and ext != ".pdf":
-            continue
-        if ext in SKIP_EXTENSIONS and ext not in PREFERRED_VIEW:
-            if ext == ".docx":
-                continue
-        stem = fname.rsplit(".", 1)[0] if "." in fname else fname
-        groups[stem].append(p)
-
-    for p in nested:
-        if pdf_only and not p.lower().endswith(".pdf"):
-            continue
-        parts = p.split("/")
-        key = parts[0] if len(parts) > 1 else p
-        groups[key].append(p)
-
-    result = []
-    for key, files in groups.items():
-        view = pick_viewable_file(files)
-        if view:
-            result.append((key, files, view))
-        elif not pdf_only and len(files) == 1:
-            result.append((key, files, files[0]))
-
-    result.sort(key=lambda x: lab_sort_key(x[0]))
-    return result
-
-
-def is_large_project(files: list[str]) -> bool:
-    code_ext = {".php", ".js", ".py", ".java", ".ts", ".vue", ".html"}
-    code_count = sum(
-        1 for f in files
-        if any(f.lower().endswith(e) for e in code_ext)
-    )
-    return len(files) > 80 or code_count > 30
-
-
-def add_unique(collection: list, item: dict) -> None:
-    url = item.get("link", {}).get("url")
-    if url:
-        fname = urllib.parse.unquote(url.rsplit("/", 1)[-1]).lower()
-        if any(
-            urllib.parse.unquote(x.get("link", {}).get("url", "").rsplit("/", 1)[-1]).lower() == fname
-            for x in collection
-        ):
-            return
-    collection.append(item)
-
-
-def resolve_full_path(course: str, subject: str, rel: str, rel_to_full: dict) -> str:
-    return rel_to_full.get(course, {}).get(subject, {}).get(rel) or f"{course}/{subject}/{rel}"
-
-
-def build_work_item(title: str, full_path: str, semester: str, description: str = "") -> dict:
+def build_folder_item(
+    subject: str,
+    course: str,
+    semester: str,
+    file_count: int,
+    tag: str | None = None,
+) -> dict:
     item = {
-        "title": title,
+        "title": subject,
         "semester": semester,
-        "link": link_for_path(full_path),
+        "course": course,
+        "description": f"{file_count} файлов в репозитории",
+        "link": folder_link(course, subject),
     }
-    if description:
-        item["description"] = description
+    if tag:
+        item["tags"] = [tag]
     return item
 
 
+def add_unique_folder(collection: list, item: dict) -> None:
+    url = item.get("link", {}).get("url", "").lower()
+    if url and any(x.get("link", {}).get("url", "").lower() == url for x in collection):
+        return
+    collection.append(item)
+
+
 def main():
+    if not TREE_PATH.exists():
+        raise SystemExit(
+            f"Missing {TREE_PATH.name}. Download:\n"
+            "  Invoke-WebRequest -Uri "
+            f'"https://api.github.com/repos/{REPO}/git/trees/main?recursive=1" '
+            f"-OutFile {TREE_PATH.name}"
+        )
+
     with open(TREE_PATH, encoding="utf-8") as f:
         data = json.load(f)
 
     files = [t["path"] for t in data.get("tree", []) if t["type"] == "blob"]
 
-    by_course_subject: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
-    # rel path -> full GitHub path segment (preserves folder casing on GitHub)
-    rel_to_full: dict[str, dict[str, dict[str, str]]] = defaultdict(lambda: defaultdict(dict))
+    # course -> subject -> file count (merge duplicate folder names by lowercase key)
+    counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    canonical: dict[str, dict[str, str]] = defaultdict(dict)
 
     for path in files:
         parts = path.split("/")
-        if len(parts) < 2:
+        if len(parts) < 3:
             continue
-        course = parts[0]
-        if len(parts) == 2:
-            by_course_subject[course]["_root"].append(parts[1])
-        else:
-            subject = parts[1]
-            rel = "/".join(parts[2:])
-            by_course_subject[course][subject].append(rel)
-            rel_to_full[course][subject][rel] = path
+        course, raw_subject = parts[0], parts[1]
+        key = raw_subject.strip().lower()
+        if key in SKIP_SUBJECTS or key == "readme.md":
+            continue
+        if key not in canonical[course]:
+            canonical[course][key] = raw_subject
+        subject = canonical[course][key]
+        counts[course][subject] += 1
 
     diploma_projects = []
     coursework_projects = []
     internship_projects = []
     lab_subjects = []
 
-    for course in sorted(by_course_subject.keys(), key=lambda c: list(COURSE_SEMESTER).index(c) if c in COURSE_SEMESTER else 99):
+    entries = []
+    for course in counts:
+        for subject in counts[course]:
+            entries.append((course, subject, counts[course][subject]))
+
+    entries.sort(key=lambda x: subject_sort_key(x[0], x[1]))
+
+    for course, subject, file_count in entries:
         semester = COURSE_SEMESTER.get(course, course)
-        for subject in sorted(by_course_subject[course].keys()):
-            if subject in SKIP_SUBJECTS:
-                continue
-            rel_files = by_course_subject[course][subject]
-            cat = categorize_subject(subject)
+        cat = categorize_subject(subject)
 
-            if is_large_project(rel_files):
-                folder_path = f"{course}/{subject}"
-                item = build_work_item(
-                    subject,
-                    folder_path,
-                    semester,
-                    f"Проект в репозитории ({len(rel_files)} файлов). Откроется на GitHub.",
-                )
-                item["link"] = {"type": "external", "url": GITHUB_TREE + urllib.parse.quote(folder_path, safe="/")}
-                item["tags"] = ["проект"]
-                if cat == "diploma":
-                    add_unique(diploma_projects, item)
-                elif cat == "coursework":
-                    add_unique(coursework_projects, item)
-                elif cat == "internship":
-                    add_unique(internship_projects, item)
-                else:
-                    lab_subjects.append({
-                        "title": subject,
-                        "semester": semester,
-                        "description": f"Материалы: {len(rel_files)} файлов",
-                        "labs": [item],
-                    })
-                continue
-
-            if cat in ("diploma", "coursework", "internship"):
-                groups = group_lab_files(rel_files, pdf_only=not is_large_project(rel_files))
-                use_subject_title = len(groups) == 1
-                for key, _files, view_path in groups:
-                    fname = view_path.split("/")[-1]
-                    file_cat = cat
-                    if cat == "internship" and is_diploma_file(fname):
-                        file_cat = "diploma"
-                    full = resolve_full_path(course, subject, view_path, rel_to_full)
-                    if file_cat == "coursework":
-                        title = f"Курсовая — {course}"
-                    elif file_cat == "diploma":
-                        title = clean_title(fname, subject)
-                    else:
-                        title = subject if use_subject_title else clean_title(fname, subject)
-                    item = build_work_item(title, full, semester)
-                    item["tags"] = [file_cat]
-                    if file_cat == "diploma":
-                        add_unique(diploma_projects, item)
-                    elif file_cat == "coursework":
-                        add_unique(coursework_projects, item)
-                    else:
-                        add_unique(internship_projects, item)
-                continue
-
-            groups = group_lab_files(rel_files)
-            if not groups:
-                continue
-
-            labs = []
-            for key, _files, view_path in groups:
-                full = resolve_full_path(course, subject, view_path, rel_to_full)
-                fname = view_path.split("/")[-1]
-                title = clean_title(fname, subject)
-                if len(groups) > 1:
-                    lab_title = f"Лабораторная — {title}"
-                else:
-                    lab_title = title
-                labs.append({
-                    "title": lab_title,
-                    "link": link_for_path(full),
-                })
-
-            if len(labs) == 1 and len(groups) == 1:
-                labs[0]["title"] = clean_title(groups[0][2].split("/")[-1], subject)
-
+        if cat == "diploma":
+            add_unique_folder(diploma_projects, build_folder_item(subject, course, semester, file_count, "diploma"))
+        elif cat == "coursework":
+            add_unique_folder(coursework_projects, build_folder_item(subject, course, semester, file_count, "coursework"))
+        elif cat == "internship":
+            add_unique_folder(internship_projects, build_folder_item(subject, course, semester, file_count, "internship"))
+        else:
             lab_subjects.append({
                 "title": subject,
                 "semester": semester,
-                "labs": labs,
+                "course": course,
+                "description": f"{file_count} файлов в папке",
+                "link": folder_link(course, subject),
             })
 
     with open(PROFILE_PATH, encoding="utf-8") as f:
@@ -324,7 +159,7 @@ def main():
             "id": "diploma",
             "title": "Дипломная работа",
             "icon": "🎓",
-            "description": "Выпускная квалификационная работа.",
+            "description": "Материалы по курсам и предметам — папки в HERZEN_PORTFOLIO_CONTENT.",
             "projects": diploma_projects,
         })
     if coursework_projects:
@@ -332,7 +167,7 @@ def main():
             "id": "coursework",
             "title": "Курсовые работы",
             "icon": "📚",
-            "description": "Академические проекты по дисциплинам.",
+            "description": "Курсовые по дисциплинам — папки на GitHub.",
             "projects": coursework_projects,
         })
     if internship_projects:
@@ -340,15 +175,15 @@ def main():
             "id": "internship",
             "title": "Практики",
             "icon": "💼",
-            "description": "Отчёты о прохождении производственной и учебной практики.",
+            "description": "Отчёты и материалы практик — папки на GitHub.",
             "projects": internship_projects,
         })
     if lab_subjects:
         categories.append({
             "id": "lab",
-            "title": "Лабораторные работы",
+            "title": "Лабораторные и учебные работы",
             "icon": "🔬",
-            "description": "Лабораторные работы по курсам и предметам. Файлы хранятся в репозитории HERZEN_PORTFOLIO_CONTENT.",
+            "description": "Материалы по предметам и курсам — папки в HERZEN_PORTFOLIO_CONTENT.",
             "subjects": lab_subjects,
         })
 
@@ -364,11 +199,10 @@ def main():
         f.write("\n")
 
     print(f"Written {OUT_PATH}")
-    print(f"  diploma: {len(diploma_projects)}")
-    print(f"  coursework: {len(coursework_projects)}")
-    print(f"  internship: {len(internship_projects)}")
+    print(f"  diploma folders: {len(diploma_projects)}")
+    print(f"  coursework folders: {len(coursework_projects)}")
+    print(f"  internship folders: {len(internship_projects)}")
     print(f"  lab subjects: {len(lab_subjects)}")
-    print(f"  lab works: {sum(len(s['labs']) for s in lab_subjects)}")
 
 
 if __name__ == "__main__":

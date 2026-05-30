@@ -439,6 +439,17 @@ a:hover {
   overflow: hidden;
 }
 
+.subject-block--folder {
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subject-block--folder .subject-title {
+  margin: 0;
+}
+
 .subject-header {
   padding: 1rem 1.15rem;
   border-bottom: 1px solid var(--border);
