@@ -24,6 +24,8 @@ CATEGORY_ORDER = [
 ]
 
 SKIP_SUBJECTS = {"_root"}
+# Папки «практика» задаются вручную в INTERNSHIP_PROJECTS
+SKIP_AUTO_SUBJECTS = {"практика"}
 
 ROOT = Path(__file__).resolve().parents[1]
 TREE_PATH = ROOT / "content-tree.json"
@@ -81,6 +83,28 @@ def build_folder_item(
     return item
 
 
+def build_internship_projects() -> list[dict]:
+    """Фиксированные ссылки на практики по курсам."""
+    items = [
+        ("1 курс", "практика", folder_url("1 курс", "практика")),
+        ("2 курс", "практика", folder_url("2 курс", "практика")),
+        ("3 курс", "практика", folder_url("3 курс", "практика")),
+        ("4 курс", "практика", "https://github.com/NSODAT/PRACTICE_SEM7/tree/main/"),
+    ]
+    projects = []
+    for course, subject, url in items:
+        semester = COURSE_SEMESTER.get(course, course)
+        projects.append({
+            "title": "Практика",
+            "semester": semester,
+            "course": course,
+            "description": "Материалы на GitHub",
+            "link": {"type": "external", "url": url},
+            "tags": ["internship"],
+        })
+    return projects
+
+
 def add_unique_folder(collection: list, item: dict) -> None:
     url = item.get("link", {}).get("url", "").lower()
     if url and any(x.get("link", {}).get("url", "").lower() == url for x in collection):
@@ -132,15 +156,20 @@ def main():
     entries.sort(key=lambda x: subject_sort_key(x[0], x[1]))
 
     for course, subject, file_count in entries:
+        if subject.strip().lower() in SKIP_AUTO_SUBJECTS:
+            continue
         semester = COURSE_SEMESTER.get(course, course)
         cat = categorize_subject(subject)
+
+        if cat == "internship":
+            if subject.strip().lower() in SKIP_AUTO_SUBJECTS:
+                continue
+            cat = "lab"
 
         if cat == "diploma":
             add_unique_folder(diploma_projects, build_folder_item(subject, course, semester, file_count, "diploma"))
         elif cat == "coursework":
             add_unique_folder(coursework_projects, build_folder_item(subject, course, semester, file_count, "coursework"))
-        elif cat == "internship":
-            add_unique_folder(internship_projects, build_folder_item(subject, course, semester, file_count, "internship"))
         else:
             lab_subjects.append({
                 "title": subject,
@@ -149,6 +178,8 @@ def main():
                 "description": f"{file_count} файлов в папке",
                 "link": folder_link(course, subject),
             })
+
+    internship_projects = build_internship_projects()
 
     with open(PROFILE_PATH, encoding="utf-8") as f:
         existing = json.load(f)
@@ -170,14 +201,13 @@ def main():
             "description": "Курсовые по дисциплинам — папки на GitHub.",
             "projects": coursework_projects,
         })
-    if internship_projects:
-        categories.append({
-            "id": "internship",
-            "title": "Практики",
-            "icon": "💼",
-            "description": "Отчёты и материалы практик — папки на GitHub.",
-            "projects": internship_projects,
-        })
+    categories.append({
+        "id": "internship",
+        "title": "Практики",
+        "icon": "💼",
+        "description": "Материалы практик по курсам — папки на GitHub.",
+        "projects": internship_projects,
+    })
     if lab_subjects:
         categories.append({
             "id": "lab",
